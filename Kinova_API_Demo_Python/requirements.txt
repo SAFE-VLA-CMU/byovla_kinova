@@ -1,0 +1,9 @@
+Deprecated==1.2.7
+dlib==19.24.2
+kortex-api @ file:///home/aimsadmin/Downloads/kortex_api-2.6.0.post3-py3-none-any.whl#sha256=22863493b89ae0ef5270afd58881842cc1814df75736e8ceb0f0d79b869dbbe9
+numpy==1.24.4
+opencv-python==4.9.0.80
+protobuf==3.5.1
+scipy==1.10.1
+six==1.16.0
+wrapt==1.16.0
