@@ -1,0 +1,27 @@
+name: byovla_kinova
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy
+  - opencv
+  - matplotlib
+  - pillow
+  - scipy
+  - pip
+  - pip:
+    - pyrealsense2
+    - openai
+    - supervision
+    - transformers
+    - torch
+    - torchvision
+    - jax
+    - jaxlib
+    - flax
+    - octo
+    - sam-2
+    - lama-inpaint
+    - protobuf
+    - grpcio 

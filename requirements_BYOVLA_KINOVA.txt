@@ -1,0 +1,25 @@
+# BYOVLA_KINOVA Environment Requirements
+# This environment is optimized for Kinova robot control and basic functionality
+# Uses protobuf==3.5.1 for Kinova API compatibility
+
+# Core dependencies
+numpy>=1.21.0
+opencv-python>=4.5.0
+Pillow>=8.0.0
+matplotlib>=3.3.0
+scipy>=1.7.0
+
+# Kinova API (requires protobuf==3.5.1)
+kortex-api>=2.6.0
+
+# Camera support
+pyrealsense2>=2.50.0
+
+# Utilities
+tqdm>=4.62.0
+absl-py>=0.13.0
+requests>=2.25.0
+openai>=1.0.0
+
+# Note: Heavy ML models (SAM2, Grounded-SAM-2, Octo) are installed in separate BYOVLA_ML environment
+# This environment focuses on robot control, image capture, and basic processing 

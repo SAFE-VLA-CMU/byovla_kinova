@@ -1,0 +1,30 @@
+# BYOVLA_ML Environment Requirements
+# This environment is optimized for heavy ML models and SAM2 functionality
+# Uses newer protobuf versions for TensorFlow and modern ML libraries
+
+# Core ML dependencies
+torch>=2.5.1
+torchvision>=0.16.0
+torchaudio>=2.5.1
+
+# JAX and Flax
+jax>=0.4.0
+jaxlib>=0.4.0
+flax>=0.7.0
+
+# Transformers and Vision
+transformers>=4.20.0
+supervision>=0.3.0
+diffusers>=0.20.0
+
+# TensorFlow and datasets
+tensorflow>=2.10.0
+tensorflow-datasets>=4.5.0
+
+# Additional ML libraries
+timm
+groundingdino-py
+segment-anything
+
+# Note: This environment will be used for ML model inference
+# The main BYOVLA_KINOVA environment handles robot control and basic processing 
