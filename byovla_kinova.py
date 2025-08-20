@@ -14,10 +14,66 @@ import json
 import cv2
 import supervision as sv
 from supervision.draw.color import ColorPalette
-from utils_groundedSAM2.supervision_utils import CUSTOM_COLOR_MAP
-from sam2.build_sam import build_sam2
-from sam2.sam2_image_predictor import SAM2ImagePredictor
-from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
+
+# Try to import utils_groundedSAM2 (may fail due to protobuf issues)
+try:
+    from utils_groundedSAM2.supervision_utils import CUSTOM_COLOR_MAP
+    UTILS_GROUNDED_SAM2_AVAILABLE = True
+except Exception as e:
+    if "runtime_version" in str(e) or "protobuf" in str(e).lower():
+        print("⚠️  utils_groundedSAM2 not available due to protobuf version conflict")
+        print("   This is a known compatibility issue with Kinova API and ML libraries")
+        print("   ML functionality will be limited")
+        UTILS_GROUNDED_SAM2_AVAILABLE = False
+        CUSTOM_COLOR_MAP = None
+    else:
+        print(f"⚠️  utils_groundedSAM2 not available: {e}")
+        UTILS_GROUNDED_SAM2_AVAILABLE = False
+        CUSTOM_COLOR_MAP = None
+
+# Try to import SAM2 modules (may fail due to Hydra version conflicts or protobuf issues)
+try:
+    from sam2.build_sam import build_sam2
+    from sam2.sam2_image_predictor import SAM2ImagePredictor
+    SAM2_AVAILABLE = True
+except Exception as e:
+    if "version_base" in str(e):
+        print("⚠️  SAM2 modules not available due to Hydra version conflict")
+        print("   This is a known compatibility issue with older Hydra versions")
+        print("   ML functionality will be limited")
+        SAM2_AVAILABLE = False
+        build_sam2 = None
+        SAM2ImagePredictor = None
+    elif "runtime_version" in str(e) or "protobuf" in str(e).lower():
+        print("⚠️  SAM2 modules not available due to protobuf version conflict")
+        print("   This is a known compatibility issue with Kinova API and ML libraries")
+        print("   ML functionality will be limited")
+        SAM2_AVAILABLE = False
+        build_sam2 = None
+        SAM2ImagePredictor = None
+    else:
+        print(f"⚠️  SAM2 modules not available: {e}")
+        SAM2_AVAILABLE = False
+        build_sam2 = None
+        SAM2ImagePredictor = None
+
+# Try to import transformers (may fail due to protobuf issues)
+try:
+    from transformers import AutoProcessor, AutoModelForZeroShotObjectDetection
+    TRANSFORMERS_AVAILABLE = True
+except Exception as e:
+    if "runtime_version" in str(e) or "protobuf" in str(e).lower():
+        print("⚠️  transformers not available due to protobuf version conflict")
+        print("   This is a known compatibility issue with Kinova API and ML libraries")
+        print("   ML functionality will be limited")
+        TRANSFORMERS_AVAILABLE = False
+        AutoProcessor = None
+        AutoModelForZeroShotObjectDetection = None
+    else:
+        print(f"⚠️  transformers not available: {e}")
+        TRANSFORMERS_AVAILABLE = False
+        AutoProcessor = None
+        AutoModelForZeroShotObjectDetection = None
 
 # Inpaint Anything
 import torch
@@ -27,8 +83,35 @@ import numpy as np
 from pathlib import Path
 from matplotlib import pyplot as plt
 
-from lama_inpaint import inpaint_img_with_lama
-from utils import dilate_mask
+# Try to import lama_inpaint (may not be available)
+try:
+    from lama_inpaint import inpaint_img_with_lama
+    LAMA_INPAINT_AVAILABLE = True
+except ImportError as e:
+    print("⚠️  lama_inpaint not available")
+    print("   This module is part of Inpaint-Anything and may not be installed")
+    print("   Inpainting functionality will be limited")
+    LAMA_INPAINT_AVAILABLE = False
+    inpaint_img_with_lama = None
+except Exception as e:
+    print(f"⚠️  lama_inpaint not available: {e}")
+    LAMA_INPAINT_AVAILABLE = False
+    inpaint_img_with_lama = None
+
+# Try to import utils (may not be available)
+try:
+    from utils import dilate_mask
+    UTILS_AVAILABLE = True
+except ImportError as e:
+    print("⚠️  utils module not available")
+    print("   This module is part of Inpaint-Anything and may not be installed")
+    print("   Some utility functions will be limited")
+    UTILS_AVAILABLE = False
+    dilate_mask = None
+except Exception as e:
+    print(f"⚠️  utils module not available: {e}")
+    UTILS_AVAILABLE = False
+    dilate_mask = None
 
 # Kinova API imports (replacing WidowX)
 try:
@@ -57,17 +140,58 @@ import os
 import argparse
 from scipy.ndimage import filters
 from tqdm import tqdm
-from transformers import TextStreamer
+
+# Try to import TextStreamer (may fail due to protobuf issues)
+try:
+    from transformers import TextStreamer
+    TEXTSTREAMER_AVAILABLE = True
+except Exception as e:
+    if "runtime_version" in str(e) or "protobuf" in str(e).lower():
+        print("⚠️  TextStreamer not available due to protobuf version conflict")
+        TEXTSTREAMER_AVAILABLE = False
+        TextStreamer = None
+    else:
+        print(f"⚠️  TextStreamer not available: {e}")
+        TEXTSTREAMER_AVAILABLE = False
+        TextStreamer = None
+
 from absl import flags
 import random
 import pickle
 import copy
-import einops
 
 # Import relevant libraries
-from IPython import display
+# Try to import IPython (may not be available)
+try:
+    from IPython import display
+    IPYTHON_AVAILABLE = True
+except ImportError as e:
+    print("⚠️  IPython not available")
+    print("   This library is used for display functionality in notebooks")
+    print("   Display functionality will be limited")
+    IPYTHON_AVAILABLE = False
+    display = None
+except Exception as e:
+    print(f"⚠️  IPython not available: {e}")
+    IPYTHON_AVAILABLE = False
+    display = None
+
 import jax
-import tensorflow_datasets as tfds
+
+# Try to import tensorflow_datasets (may not be available)
+try:
+    import tensorflow_datasets as tfds
+    TFDS_AVAILABLE = True
+except ImportError as e:
+    print("⚠️  tensorflow_datasets not available")
+    print("   This library is used for dataset loading")
+    print("   Dataset functionality will be limited")
+    TFDS_AVAILABLE = False
+    tfds = None
+except Exception as e:
+    print(f"⚠️  tensorflow_datasets not available: {e}")
+    TFDS_AVAILABLE = False
+    tfds = None
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
 from flax.linen import initializers
@@ -89,9 +213,40 @@ import os
 from itertools import chain
 import shutil
 import gc
-import psutil
+
+# Try to import psutil (may not be available)
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError as e:
+    print("⚠️  psutil not available")
+    print("   This library is used for system monitoring")
+    print("   System monitoring functionality will be limited")
+    PSUTIL_AVAILABLE = False
+    psutil = None
+except Exception as e:
+    print(f"⚠️  psutil not available: {e}")
+    PSUTIL_AVAILABLE = False
+    psutil = None
+
 import tqdm
 import matplotlib
+
+# Try to import einops (may not be available)
+try:
+    import einops
+    EINOPS_AVAILABLE = True
+except ImportError as e:
+    print("⚠️  einops not available")
+    print("   This library is used for tensor operations in deep learning")
+    print("   Some ML functionality will be limited")
+    EINOPS_AVAILABLE = False
+    einops = None
+except Exception as e:
+    print(f"⚠️  einops not available: {e}")
+    EINOPS_AVAILABLE = False
+    einops = None
+
 # Note: tensorflow removed due to protobuf conflicts with Kinova API
 # import tensorflow as tf
 from absl import flags
@@ -484,6 +639,11 @@ def grounded_sam2(img_path, text, save_annotations, save_directory):
     """
     Simplified version - you'll need to implement with actual models
     """
+    if not SAM2_AVAILABLE:
+        print("⚠️  SAM2 not available - using placeholder implementation")
+        print(f"   Would process: {img_path}, {text}")
+        return None, []
+    
     print(f"Grounded SAM2 called with: {img_path}, {text}")
     # Placeholder implementation
     # In real implementation, this would use the actual models
@@ -493,6 +653,11 @@ def outpaint_anything(img, mask):
     """
     Simplified version - you'll need to implement with actual models
     """
+    if not LAMA_INPAINT_AVAILABLE:
+        print("⚠️  Outpainting not available - lama_inpaint module not found")
+        print("   Would process image with mask for outpainting")
+        return img
+    
     print("Outpaint Anything called")
     # Placeholder implementation
     return img
@@ -533,6 +698,11 @@ def inpaint_objects(class_names_sensitivity, detections_sensitivity, sensitivity
     """
     Simplified version
     """
+    if not LAMA_INPAINT_AVAILABLE or not UTILS_AVAILABLE:
+        print("⚠️  Object inpainting not available - required modules not found")
+        print("   Would inpaint objects based on sensitivity")
+        return img
+    
     print("Inpaint objects called")
     # Placeholder implementation
     return img
@@ -541,6 +711,11 @@ def inpaint_backgrounds(class_names, detections, perturb_std, img, w, N, n_steps
     """
     Simplified version
     """
+    if not LAMA_INPAINT_AVAILABLE or not UTILS_AVAILABLE:
+        print("⚠️  Background inpainting not available - required modules not found")
+        print("   Would inpaint backgrounds based on sensitivity")
+        return img
+    
     print("Inpaint backgrounds called")
     # Placeholder implementation
     return img
@@ -600,10 +775,17 @@ if __name__ == "__main__":
             model = None
             task = None
         except Exception as e:
-            print(f"⚠️  Octo model not available: {e}")
-            octo_available = False
-            model = None
-            task = None
+            if "runtime_version" in str(e) or "protobuf" in str(e).lower():
+                print("⚠️  Octo model not available due to protobuf version conflict")
+                print("   This is a known compatibility issue with Kinova API and ML libraries")
+                octo_available = False
+                model = None
+                task = None
+            else:
+                print(f"⚠️  Octo model not available: {e}")
+                octo_available = False
+                model = None
+                task = None
         
         # Parameters
         thresh = 0.002
