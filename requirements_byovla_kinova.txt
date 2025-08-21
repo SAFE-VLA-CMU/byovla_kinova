@@ -1,0 +1,39 @@
+# Core dependencies for BYOVLA with Kinova
+numpy>=1.21.0
+opencv-python>=4.5.0
+Pillow>=8.0.0
+matplotlib>=3.3.0
+scipy>=1.7.0
+
+# Kinova API (requires protobuf==3.5.1)
+kortex-api>=2.6.0
+
+# Computer Vision and ML
+torch>=1.9.0
+torchvision>=0.10.0
+transformers>=4.20.0
+supervision>=0.3.0
+
+# JAX and Octo (compatible with older protobuf)
+jax>=0.4.0
+jaxlib>=0.4.0
+flax>=0.7.0
+
+# Camera support
+pyrealsense2>=2.50.0
+
+# Utilities
+tqdm>=4.62.0
+absl-py>=0.13.0
+requests>=2.25.0
+openai>=1.0.0
+
+# Note: TensorFlow is removed due to protobuf version conflicts with Kinova API
+# If you need TensorFlow functionality, consider using PyTorch alternatives
+# or creating a separate environment for TensorFlow-dependent components
+
+# Optional: for full BYOVLA functionality
+# You'll need to install these separately or from source:
+# - Grounded-SAM-2
+# - Inpaint_Anything
+# - Octo model files 
